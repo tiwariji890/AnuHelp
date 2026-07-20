@@ -139,3 +139,47 @@ AUTO_DELETE_TIME = int(os.getenv("AUTO_DELETE_TIME", "0"))
 # ============================================================
 # 🌍 LANGUAGE SYSTEM (DB CONNECTED 🔥)
 # ============================================================
+
+DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", "en")
+
+AUTO_TRANSLATE = os.getenv("AUTO_TRANSLATE", "True") == "True"
+TRANSLATE_MODE = os.getenv("TRANSLATE_MODE", "reply")  # reply/replace/off
+TRANSLATE_TIMEOUT = int(os.getenv("TRANSLATE_TIMEOUT", "5"))
+TRANSLATE_RETRIES = int(os.getenv("TRANSLATE_RETRIES", "2"))
+
+IGNORE_COMMANDS_IN_TRANSLATE = os.getenv(
+    "IGNORE_COMMANDS_IN_TRANSLATE", "True"
+) == "True"
+
+# ============================================================
+# 🧠 SECURITY FLAGS
+# ============================================================
+
+STRICT_MODE = os.getenv("STRICT_MODE", "True") == "True"
+IGNORE_PRIVATE = os.getenv("IGNORE_PRIVATE", "True") == "True"
+
+# ============================================================
+# 🧠 DEBUG / LOGGING
+# ============================================================
+
+DEBUG = os.getenv("DEBUG", "True") == "True"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+# ============================================================
+# 🚀 STARTUP FLAGS
+# ============================================================
+
+AUTO_CREATE_INDEXES = True
+AUTO_LOAD_MODULES = True
+
+# ============================================================
+# ❌ VALIDATION
+# ============================================================
+
+if not API_ID or not API_HASH or not BOT_TOKEN:
+    raise ValueError("❌ API_ID, API_HASH, BOT_TOKEN required!")
+
+if not MONGO_URI:
+    raise ValueError("❌ MONGO_URI required!")
+
+print("✅ CONFIG LOADED SUCCESSFULLY 🚀")
