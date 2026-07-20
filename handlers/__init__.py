@@ -1,5 +1,5 @@
 # ============================================================
-# 🤖 HANDLERS LOADER (ULTRA PRO MAX FINAL VERSION)
+# 🤖 HANDLERS LOADER (ULTRA PRO MAX FINAL + LANGUAGE)
 # ============================================================
 
 import logging
@@ -30,6 +30,7 @@ def safe_import(module_name: str, func_name: str):
         logger.warning(f"⚠️ {module_name}.{func_name} failed → {e}")
         return None
 
+
 # ============================================================
 # 📦 MAIN MODULES LIST
 # ============================================================
@@ -45,6 +46,9 @@ MODULES = [
     ("Pins System", "handlers.pins", "register_pins"),
     ("Locks System", "handlers.locks", "register_locks"),
     ("Anti Bio Link", "handlers.antibiolink", "register_antibiolink"),
+
+    # ================= 🌍 LANGUAGE SYSTEM =================
+    ("Language System", "handlers.language_handler", "register_language"),
 
     # ================= SECURITY =================
     ("Captcha System", "handlers.captcha", "register_captcha"),
