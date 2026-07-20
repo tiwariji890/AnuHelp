@@ -40,6 +40,12 @@ MODULES = [
     ("Group Commands", "handlers.group_commands", "register_group_commands"),
     ("Repo System", "handlers.repo", "register_repo_handler"),
 
+    # 📌 PINS
+    ("Pins System", "handlers.pins", "register_pins"),
+
+    # 🔐 LOCKS
+    ("Locks System", "handlers.locks", "register_locks"),
+
     # HELP
     ("Support System", "handlers.help_support", "register_help_handler"),
 
