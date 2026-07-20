@@ -1,5 +1,5 @@
 # ============================================================
-# 🤖 HANDLERS LOADER (ULTRA PRO MAX FINAL + LANGUAGE)
+# 🤖 HANDLERS LOADER (ULTRA PRO MAX FINAL + LANGUAGE SAFE)
 # ============================================================
 
 import logging
@@ -18,7 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger("ULTRA-BOT")
 
 # ============================================================
-# 🛡 SAFE IMPORT FUNCTION
+# 🛡 SAFE IMPORT FUNCTION (IMPROVED)
 # ============================================================
 
 def safe_import(module_name: str, func_name: str):
@@ -26,9 +26,13 @@ def safe_import(module_name: str, func_name: str):
         module = importlib.import_module(module_name)
         func = getattr(module, func_name)
         return func
+    except ModuleNotFoundError:
+        logger.warning(f"⚠️ Module not found → {module_name}")
+    except AttributeError:
+        logger.warning(f"⚠️ Function not found → {module_name}.{func_name}")
     except Exception as e:
-        logger.warning(f"⚠️ {module_name}.{func_name} failed → {e}")
-        return None
+        logger.warning(f"⚠️ Import error → {module_name} → {e}")
+    return None
 
 
 # ============================================================
@@ -85,7 +89,7 @@ SPECIAL_HANDLERS = [
 ]
 
 # ============================================================
-# 🧠 MAIN LOADER FUNCTION
+# 🧠 MAIN LOADER FUNCTION (UPGRADED)
 # ============================================================
 
 def register_all_handlers(app):
@@ -102,10 +106,12 @@ def register_all_handlers(app):
 
     for name, module, func_name in MODULES:
 
+        logger.info(f"🔄 Loading → {name}")
+
         func = safe_import(module, func_name)
 
         if not func:
-            logger.warning(f"⚠️ {name} skipped")
+            logger.warning(f"⚠️ Skipped → {name}")
             failed += 1
             continue
 
@@ -116,11 +122,11 @@ def register_all_handlers(app):
 
             t2 = time.time()
 
-            logger.info(f"✅ {name} loaded ({round(t2 - t1, 3)}s)")
+            logger.info(f"✅ Loaded → {name} ({round(t2 - t1, 3)}s)")
             loaded += 1
 
         except Exception as e:
-            logger.error(f"❌ {name} crashed → {e}")
+            logger.error(f"❌ Crash → {name} → {e}")
             failed += 1
 
     # ========================================================
@@ -129,20 +135,22 @@ def register_all_handlers(app):
 
     for name, module, handler_name in SPECIAL_HANDLERS:
 
+        logger.info(f"🔥 Adding → {name}")
+
         handler = safe_import(module, handler_name)
 
         if not handler:
-            logger.warning(f"⚠️ {name} missing")
+            logger.warning(f"⚠️ Missing → {name}")
             failed += 1
             continue
 
         try:
             app.add_handler(handler)
-            logger.info(f"🔥 {name} added")
+            logger.info(f"🔥 Added → {name}")
             loaded += 1
 
         except Exception as e:
-            logger.error(f"❌ {name} error → {e}")
+            logger.error(f"❌ Error → {name} → {e}")
             failed += 1
 
     # ========================================================
@@ -151,9 +159,9 @@ def register_all_handlers(app):
 
     total_time = round(time.time() - start_time, 2)
 
-    logger.info("\n" + "=" * 45)
+    logger.info("\n" + "=" * 50)
     logger.info("🚀 BOT LOADING COMPLETE")
     logger.info(f"✅ Loaded Modules : {loaded}")
     logger.info(f"❌ Failed Modules : {failed}")
     logger.info(f"⏱ Total Time     : {total_time}s")
-    logger.info("=" * 45 + "\n")
+    logger.info("=" * 50 + "\n")
