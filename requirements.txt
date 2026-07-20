@@ -1,9 +1,14 @@
+# ============================================================
+# 🤖 CORE TELEGRAM BOT
+# ============================================================
 pyrogram==2.0.106
 tgcrypto==1.2.5
 motor==3.1.1
 pymongo[srv]==4.6.3
 python-dotenv==1.0.1
-nudenet
-opencv-python-headless
-Pillow
-imageio
+nudenet==3.4.2
+opencv-python-headless==4.10.0.84
+Pillow==10.4.0
+imageio==2.34.2
+uvloop==0.19.0 
+aiodns==3.2.0
