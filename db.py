@@ -1,5 +1,5 @@
 # ============================================================
-# 🤖 DATABASE LAYER (FINAL PRO MAX + SAFE + FAST)
+# 🤖 DATABASE LAYER (ULTRA PRO MAX FINAL)
 # ============================================================
 
 import motor.motor_asyncio
@@ -20,7 +20,7 @@ db = client[DB_NAME]
 logger.info("✅ MongoDB Connected")
 
 # ============================================================
-# ⚡ SIMPLE CACHE (BOOST SPEED)
+# ⚡ SIMPLE CACHE
 # ============================================================
 
 CACHE = {}
@@ -30,6 +30,9 @@ def cache_get(key):
 
 def cache_set(key, value):
     CACHE[key] = value
+
+def cache_del(key):
+    CACHE.pop(key, None)
 
 
 # ============================================================
@@ -43,20 +46,46 @@ DEFAULT = {
     "welcome": True,
     "locks": [],
     "pinned": None,
-    "antibiolink": False   # 🔥 NEW
+    "antibiolink": False,
+    "captcha": True   # 🔥 NEW
 }
 
 # ==========================================================
-# 🚫 ANTIBIOLINK SYSTEM (NEW)
+# 🔐 CAPTCHA SYSTEM (NEW 🔥)
 # ==========================================================
 
-async def set_antibiolink(chat_id, status):
-    await db.antibiolink.update_one(
+async def set_captcha(chat_id, status):
+    await db.captcha_settings.update_one(
         {"chat_id": chat_id},
         {"$set": {
             "enabled": status,
             "updated": datetime.utcnow()
         }},
+        upsert=True
+    )
+    cache_set(f"captcha:{chat_id}", status)
+
+
+async def get_captcha(chat_id):
+    cached = cache_get(f"captcha:{chat_id}")
+    if cached is not None:
+        return cached
+
+    data = await db.captcha_settings.find_one({"chat_id": chat_id})
+    status = data.get("enabled", DEFAULT["captcha"]) if data else DEFAULT["captcha"]
+
+    cache_set(f"captcha:{chat_id}", status)
+    return status
+
+
+# ==========================================================
+# 🚫 ANTIBIOLINK
+# ==========================================================
+
+async def set_antibiolink(chat_id, status):
+    await db.antibiolink.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"enabled": status, "updated": datetime.utcnow()}},
         upsert=True
     )
     cache_set(f"antibiolink:{chat_id}", status)
@@ -75,16 +104,13 @@ async def get_antibiolink(chat_id):
 
 
 # ==========================================================
-# 📌 PINS SYSTEM (SAVE + RESTORE)
+# 📌 PINS
 # ==========================================================
 
 async def set_pinned(chat_id, message_id):
     await db.pins.update_one(
         {"chat_id": chat_id},
-        {"$set": {
-            "message_id": message_id,
-            "updated": datetime.utcnow()
-        }},
+        {"$set": {"message_id": message_id}},
         upsert=True
     )
     cache_set(f"pin:{chat_id}", message_id)
@@ -102,48 +128,9 @@ async def get_pinned(chat_id):
     return msg_id
 
 
-async def clear_pinned(chat_id):
-    await db.pins.delete_one({"chat_id": chat_id})
-    CACHE.pop(f"pin:{chat_id}", None)
-
-
 # ==========================================================
-# 🔐 LOCKS SYSTEM (MULTI LOCK SUPPORT)
+# 🔐 LOCKS
 # ==========================================================
-
-async def set_lock(chat_id, lock_type):
-    data = await db.locks.find_one({"chat_id": chat_id})
-    locks = data.get("locks", []) if data else []
-
-    if lock_type not in locks:
-        locks.append(lock_type)
-
-    await db.locks.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"locks": locks}},
-        upsert=True
-    )
-
-    cache_set(f"locks:{chat_id}", locks)
-
-
-async def remove_lock(chat_id, lock_type):
-    data = await db.locks.find_one({"chat_id": chat_id})
-    if not data:
-        return
-
-    locks = data.get("locks", [])
-    if lock_type in locks:
-        locks.remove(lock_type)
-
-    await db.locks.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"locks": locks}},
-        upsert=True
-    )
-
-    cache_set(f"locks:{chat_id}", locks)
-
 
 async def get_locks(chat_id):
     cached = cache_get(f"locks:{chat_id}")
@@ -172,21 +159,9 @@ async def add_warn(chat_id, user_id):
 
     await db.warns.update_one(
         {"chat_id": chat_id, "user_id": user_id},
-        {"$set": {"count": count, "updated": datetime.utcnow()}},
+        {"$set": {"count": count}},
         upsert=True
     )
-
-    cache_set(f"warn:{chat_id}:{user_id}", count)
-    return count
-
-
-async def get_warn(chat_id, user_id):
-    cached = cache_get(f"warn:{chat_id}:{user_id}")
-    if cached is not None:
-        return cached
-
-    data = await db.warns.find_one({"chat_id": chat_id, "user_id": user_id})
-    count = data.get("count", 0) if data else 0
 
     cache_set(f"warn:{chat_id}:{user_id}", count)
     return count
@@ -218,31 +193,6 @@ async def get_nsfw(chat_id):
 
 
 # ==========================================================
-# ✏️ ANTIEDIT
-# ==========================================================
-
-async def set_antiedit(chat_id, status):
-    await db.antiedit.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"enabled": status}},
-        upsert=True
-    )
-    cache_set(f"antiedit:{chat_id}", status)
-
-
-async def get_antiedit(chat_id):
-    cached = cache_get(f"antiedit:{chat_id}")
-    if cached is not None:
-        return cached
-
-    data = await db.antiedit.find_one({"chat_id": chat_id})
-    status = data.get("enabled", DEFAULT["antiedit"]) if data else DEFAULT["antiedit"]
-
-    cache_set(f"antiedit:{chat_id}", status)
-    return status
-
-
-# ==========================================================
 # 🚨 ANTIRAID
 # ==========================================================
 
@@ -251,10 +201,7 @@ async def enable_antiraid(chat_id, duration):
 
     await db.antiraid.update_one(
         {"chat_id": chat_id},
-        {"$set": {
-            "enabled_until": until,
-            "updated": datetime.utcnow()
-        }},
+        {"$set": {"enabled_until": until}},
         upsert=True
     )
 
@@ -268,53 +215,60 @@ async def is_antiraid_active(chat_id):
 
 
 # ==========================================================
-# 🧾 LOG
+# 🗑 CAPTCHA DATA STORE (IMPORTANT)
 # ==========================================================
 
-async def add_log(chat_id, action, user_id):
-    await db.logs.insert_one({
-        "chat_id": chat_id,
-        "action": action,
-        "user_id": user_id,
-        "time": datetime.utcnow()
-    })
-
-
-# ==========================================================
-# 🗑 AUTO DELETE
-# ==========================================================
-
-async def set_autodel(chat_id, delay):
-    await db.autodel.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"delay": delay}},
+async def save_captcha(chat_id, user_id, captcha):
+    await db.captcha.update_one(
+        {"chat_id": chat_id, "user_id": user_id},
+        {"$set": {
+            "captcha": captcha,
+            "verified": False,
+            "created_at": datetime.utcnow()
+        }},
         upsert=True
     )
 
 
-async def get_autodel(chat_id):
-    data = await db.autodel.find_one({"chat_id": chat_id})
-    return data.get("delay") if data else None
+async def verify_captcha_user(chat_id, user_id):
+    await db.captcha.update_one(
+        {"chat_id": chat_id, "user_id": user_id},
+        {"$set": {"verified": True}}
+    )
+
+
+async def delete_captcha(chat_id, user_id):
+    await db.captcha.delete_one({"chat_id": chat_id, "user_id": user_id})
 
 
 # ==========================================================
-# 📌 INDEXES (VERY IMPORTANT)
+# 📌 INDEXES
 # ==========================================================
 
 async def create_indexes():
+
     await db.warns.create_index(
         [("chat_id", 1), ("user_id", 1)],
         unique=True
     )
 
-    await db.nsfw.create_index([("chat_id", 1)])
-    await db.antiedit.create_index([("chat_id", 1)])
     await db.antiraid.create_index([("chat_id", 1)], unique=True)
     await db.autodel.create_index([("chat_id", 1)], unique=True)
 
-    # 🔥 NEW INDEXES
     await db.locks.create_index([("chat_id", 1)], unique=True)
     await db.pins.create_index([("chat_id", 1)], unique=True)
     await db.antibiolink.create_index([("chat_id", 1)], unique=True)
 
-    logger.info("🚀 Indexes Created")
+    # 🔥 CAPTCHA INDEX
+    await db.captcha.create_index(
+        [("chat_id", 1), ("user_id", 1)],
+        unique=True
+    )
+
+    # 🔥 AUTO DELETE CAPTCHA (5 min)
+    await db.captcha.create_index(
+        "created_at",
+        expireAfterSeconds=300
+    )
+
+    logger.info("🚀 All Indexes Created")
