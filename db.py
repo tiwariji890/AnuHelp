@@ -1,5 +1,5 @@
 # ============================================================
-# 🤖 DATABASE LAYER (ULTRA PRO MAX FINAL + LANGUAGE)
+# 🤖 DATABASE LAYER (ULTRA PRO MAX FINAL + LANGUAGE + SUDO)
 # ============================================================
 
 import motor.motor_asyncio
@@ -50,16 +50,37 @@ DEFAULT = {
 }
 
 # ==========================================================
-# 🌍 LANGUAGE SYSTEM (NEW 🔥)
+# 👑 SUDO SYSTEM (NEW 🔥)
+# ==========================================================
+
+async def add_sudo(user_id):
+    await db.sudo.update_one(
+        {"user_id": user_id},
+        {"$set": {"user_id": user_id}},
+        upsert=True
+    )
+
+async def remove_sudo(user_id):
+    await db.sudo.delete_one({"user_id": user_id})
+
+async def get_sudo_users():
+    users = []
+    async for user in db.sudo.find():
+        users.append(user["user_id"])
+    return users
+
+async def is_sudo_user(user_id):
+    user = await db.sudo.find_one({"user_id": user_id})
+    return bool(user)
+
+# ==========================================================
+# 🌍 LANGUAGE SYSTEM
 # ==========================================================
 
 async def set_language(chat_id, lang):
     await db.language.update_one(
         {"chat_id": chat_id},
-        {"$set": {
-            "lang": lang,
-            "updated": datetime.utcnow()
-        }},
+        {"$set": {"lang": lang, "updated": datetime.utcnow()}},
         upsert=True
     )
     cache_set(f"lang:{chat_id}", lang)
@@ -88,10 +109,7 @@ async def delete_language(chat_id):
 async def set_captcha(chat_id, status):
     await db.captcha_settings.update_one(
         {"chat_id": chat_id},
-        {"$set": {
-            "enabled": status,
-            "updated": datetime.utcnow()
-        }},
+        {"$set": {"enabled": status, "updated": datetime.utcnow()}},
         upsert=True
     )
     cache_set(f"captcha:{chat_id}", status)
@@ -177,7 +195,7 @@ async def is_locked(chat_id, lock_type):
     return lock_type in locks
 
 # ==========================================================
-# ⚠️ WARN
+# ⚠️ WARN SYSTEM
 # ==========================================================
 
 async def add_warn(chat_id, user_id):
@@ -265,10 +283,12 @@ async def delete_captcha(chat_id, user_id):
     await db.captcha.delete_one({"chat_id": chat_id, "user_id": user_id})
 
 # ==========================================================
-# 📌 INDEXES (IMPORTANT)
+# 📌 INDEXES (OPTIMIZED 🔥)
 # ==========================================================
 
 async def create_indexes():
+
+    await db.sudo.create_index([("user_id", 1)], unique=True)
 
     await db.warns.create_index(
         [("chat_id", 1), ("user_id", 1)],
@@ -276,25 +296,17 @@ async def create_indexes():
     )
 
     await db.antiraid.create_index([("chat_id", 1)], unique=True)
-    await db.autodel.create_index([("chat_id", 1)], unique=True)
-
     await db.locks.create_index([("chat_id", 1)], unique=True)
     await db.pins.create_index([("chat_id", 1)], unique=True)
     await db.antibiolink.create_index([("chat_id", 1)], unique=True)
 
-    # 🌍 LANGUAGE INDEX
-    await db.language.create_index(
-        [("chat_id", 1)],
-        unique=True
-    )
+    await db.language.create_index([("chat_id", 1)], unique=True)
 
-    # 🔥 CAPTCHA INDEX
     await db.captcha.create_index(
         [("chat_id", 1), ("user_id", 1)],
         unique=True
     )
 
-    # 🔥 AUTO DELETE CAPTCHA (5 min)
     await db.captcha.create_index(
         "created_at",
         expireAfterSeconds=300
