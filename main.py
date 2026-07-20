@@ -1,8 +1,9 @@
 # ============================================================
-# 🤖 Group Manager Bot - Main Entry (FINAL PRO VERSION)
+# 🤖 Group Manager Bot - Main Entry (ULTRA PRO MAX FINAL)
 # ============================================================
 
 import logging
+import asyncio
 from pyrogram import Client, filters
 from config import API_ID, API_HASH, BOT_TOKEN
 
@@ -12,6 +13,9 @@ from security import verify_integrity, get_runtime_key
 # 📦 Handlers
 from handlers import register_all_handlers
 
+# 🗄️ DB
+from db import create_indexes
+
 
 # ============================================================
 # ⚙️ Logging Setup
@@ -19,10 +23,12 @@ from handlers import register_all_handlers
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
-logging.info("🚀 Starting Group Manager Bot...")
+logger = logging.getLogger("MAIN")
+
+logger.info("🚀 Starting Group Manager Bot...")
 
 
 # ============================================================
@@ -32,9 +38,9 @@ logging.info("🚀 Starting Group Manager Bot...")
 try:
     verify_integrity()
     RUNTIME_KEY = get_runtime_key()
-    logging.info("🔐 Security check passed!")
+    logger.info("🔐 Security check passed!")
 except Exception as e:
-    logging.error(f"❌ Security check failed: {e}")
+    logger.error(f"❌ Security check failed: {e}")
     exit()
 
 
@@ -47,9 +53,35 @@ app = Client(
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN,
-    workers=10,
-    sleep_threshold=10
+    workers=20,  # 🔥 boosted
+    sleep_threshold=15
 )
+
+
+# ============================================================
+# 🚀 STARTUP TASKS
+# ============================================================
+
+async def startup():
+    logger.info("⚙️ Running startup tasks...")
+
+    try:
+        await create_indexes()
+        logger.info("✅ Database indexes ready")
+    except Exception as e:
+        logger.error(f"❌ DB Index error: {e}")
+
+    logger.info("🚀 Bot fully started!")
+
+
+# ============================================================
+# 🧹 CLEAN SHUTDOWN
+# ============================================================
+
+async def shutdown():
+    logger.warning("🛑 Shutting down bot...")
+    await app.stop()
+    logger.info("✅ Bot stopped safely")
 
 
 # ============================================================
@@ -58,43 +90,65 @@ app = Client(
 
 try:
     register_all_handlers(app)
-    logging.info("✅ All handlers loaded!")
+    logger.info("✅ All handlers loaded!")
 except Exception as e:
-    logging.error(f"❌ Handler error: {e}")
+    logger.error(f"❌ Handler error: {e}")
     exit()
 
 
 # ============================================================
-# ❤️ KEEP BOT ALIVE (SAFE VERSION)
+# ❤️ KEEP BOT ALIVE (SAFE FALLBACK)
 # ============================================================
-
-# ⚠️ IMPORTANT:
-# Ye handler sirf empty fallback hai
-# Ye help system ko block nahi karega
 
 @app.on_message(filters.private & filters.text & filters.incoming)
 async def alive_ping(client, message):
-    # agar kisi handler ne handle nahi kiya tab ye chalega
     return
 
 
 # ============================================================
-# ▶️ START BOT
+# ▶️ MAIN RUNNER (ANTI-CRASH LOOP)
+# ============================================================
+
+async def main():
+    while True:
+        try:
+            await app.start()
+            await startup()
+
+            logger.info("🤖 Bot is running...")
+            await idle()
+
+        except Exception as e:
+            logger.error(f"❌ Crash detected: {e}")
+            logger.info("🔄 Restarting in 5 seconds...")
+            await asyncio.sleep(5)
+
+        finally:
+            try:
+                await shutdown()
+            except:
+                pass
+
+
+# ============================================================
+# ▶️ ENTRY POINT
 # ============================================================
 
 if __name__ == "__main__":
-    try:
-        print("""
+    from pyrogram import idle
+
+    print("""
 ╔══════════════════════════════╗
 ║   🤖 GROUP MANAGER BOT      ║
-║   🔥 ALL SYSTEMS ACTIVE     ║
+║   🔥 ULTRA PRO MAX ACTIVE   ║
 ╚══════════════════════════════╝
 """)
 
-        app.run()
+    try:
+        asyncio.run(main())
 
     except KeyboardInterrupt:
-        logging.warning("⛔ Bot stopped manually")
+        logger.warning("⛔ Bot stopped manually")
 
     except Exception as e:
-        logging.error(f"❌ Bot crashed: {e}")
+        logger.error(f"❌ Fatal error: {e}")
