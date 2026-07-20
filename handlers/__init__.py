@@ -46,6 +46,9 @@ MODULES = [
     # 🔐 LOCKS
     ("Locks System", "handlers.locks", "register_locks"),
 
+    # 🚫 ANTI BIO LINK
+    ("Anti Bio Link", "handlers.antibiolink", "register_antibiolink"),
+
     # HELP
     ("Support System", "handlers.help_support", "register_help_handler"),
 
@@ -142,7 +145,7 @@ def register_all_handlers(app):
 
     # ========================================================
     # 📊 FINAL REPORT
-    # ========================================================
+    # ============================================================
 
     total_time = round(time.time() - start_time, 2)
 
