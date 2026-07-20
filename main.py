@@ -4,8 +4,9 @@
 
 import logging
 import asyncio
-from pyrogram import Client, filters
-from config import API_ID, API_HASH, BOT_TOKEN
+from pyrogram import Client, filters, idle
+
+from config import API_ID, API_HASH, BOT_TOKEN, LOG_LEVEL
 
 # 🔐 Security
 from security import verify_integrity, get_runtime_key
@@ -22,7 +23,7 @@ from db import create_indexes
 # ============================================================
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
@@ -41,7 +42,7 @@ try:
     logger.info("🔐 Security check passed!")
 except Exception as e:
     logger.error(f"❌ Security check failed: {e}")
-    exit()
+    exit(1)
 
 
 # ============================================================
@@ -53,7 +54,7 @@ app = Client(
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN,
-    workers=20,  # 🔥 boosted
+    workers=20,
     sleep_threshold=15
 )
 
@@ -80,7 +81,10 @@ async def startup():
 
 async def shutdown():
     logger.warning("🛑 Shutting down bot...")
-    await app.stop()
+    try:
+        await app.stop()
+    except Exception:
+        pass
     logger.info("✅ Bot stopped safely")
 
 
@@ -93,7 +97,7 @@ try:
     logger.info("✅ All handlers loaded!")
 except Exception as e:
     logger.error(f"❌ Handler error: {e}")
-    exit()
+    exit(1)
 
 
 # ============================================================
@@ -106,12 +110,16 @@ async def alive_ping(client, message):
 
 
 # ============================================================
-# ▶️ MAIN RUNNER (ANTI-CRASH LOOP)
+# ▶️ MAIN RUNNER (ANTI-CRASH LOOP 🔥)
 # ============================================================
 
 async def main():
+    retry_delay = 5
+
     while True:
         try:
+            logger.info("🚀 Starting bot session...")
+
             await app.start()
             await startup()
 
@@ -120,14 +128,15 @@ async def main():
 
         except Exception as e:
             logger.error(f"❌ Crash detected: {e}")
-            logger.info("🔄 Restarting in 5 seconds...")
-            await asyncio.sleep(5)
+
+            logger.info(f"🔄 Restarting in {retry_delay} seconds...")
+            await asyncio.sleep(retry_delay)
+
+            # exponential backoff (max 60 sec)
+            retry_delay = min(retry_delay * 2, 60)
 
         finally:
-            try:
-                await shutdown()
-            except:
-                pass
+            await shutdown()
 
 
 # ============================================================
@@ -135,7 +144,6 @@ async def main():
 # ============================================================
 
 if __name__ == "__main__":
-    from pyrogram import idle
 
     print("""
 ╔══════════════════════════════╗
