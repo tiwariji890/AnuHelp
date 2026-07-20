@@ -1,5 +1,5 @@
 # ============================================================
-# 🤖 HANDLERS LOADER (ULTIMATE PRO MAX + CAPTCHA ADDED)
+# 🤖 HANDLERS LOADER (ULTRA PRO MAX FINAL VERSION)
 # ============================================================
 
 import logging
@@ -27,60 +27,51 @@ def safe_import(module_name: str, func_name: str):
         func = getattr(module, func_name)
         return func
     except Exception as e:
-        logger.warning(f"⚠️ {module_name} failed → {e}")
+        logger.warning(f"⚠️ {module_name}.{func_name} failed → {e}")
         return None
 
 # ============================================================
-# 📦 MODULE CONFIG
+# 📦 MAIN MODULES LIST
 # ============================================================
 
 MODULES = [
-    # BASIC
+
+    # ================= BASIC =================
     ("Start System", "handlers.start", "register_handlers"),
     ("Group Commands", "handlers.group_commands", "register_group_commands"),
     ("Repo System", "handlers.repo", "register_repo_handler"),
 
-    # 📌 PINS
+    # ================= CORE =================
     ("Pins System", "handlers.pins", "register_pins"),
-
-    # 🔐 LOCKS
     ("Locks System", "handlers.locks", "register_locks"),
-
-    # 🚫 ANTI BIO LINK
     ("Anti Bio Link", "handlers.antibiolink", "register_antibiolink"),
 
-    # 🔐 CAPTCHA SYSTEM (NEW 🔥)
+    # ================= SECURITY =================
     ("Captcha System", "handlers.captcha", "register_captcha"),
-
-    # HELP
-    ("Support System", "handlers.help_support", "register_help_handler"),
-
-    # ADMIN
-    ("Admin Panel", "handlers.adminpanel", "register_admin_panel"),
-
-    # APPROVAL
-    ("Approval System", "handlers.approve", "register_approval_handlers"),
-
-    # SECURITY
     ("Anti-Spam", "handlers.auto_spam_detection", "register_auto_spam"),
     ("Abuse Filter", "handlers.abuse", "register_abuse_system"),
 
-    # ANTIFLOOD
+    # ================= ANTIFLOOD =================
     ("AntiFlood Core", "handlers.antiflood", "register_antiflood"),
     ("AntiFlood Commands", "handlers.antiflood", "register_antiflood_commands"),
 
-    # NSFW
+    # ================= NSFW =================
     ("NSFW Filter", "handlers.nsfw", "register_nsfw_filter"),
     ("NSFW Commands", "handlers.nsfw_commands", "register_nsfw_commands"),
 
-    # OTHER
+    # ================= ADMIN =================
+    ("Admin Panel", "handlers.adminpanel", "register_admin_panel"),
+    ("Approval System", "handlers.approve", "register_approval_handlers"),
+
+    # ================= UTIL =================
+    ("Support System", "handlers.help_support", "register_help_handler"),
     ("Anti-Edit", "handlers.antiedit", "register_antiedit"),
     ("Auto Clean", "handlers.intel", "register_autoclean"),
     ("AniQuote", "handlers.aniquote", "register_aniquote"),
 ]
 
 # ============================================================
-# 🚨 SPECIAL HANDLERS
+# 🚨 SPECIAL HANDLERS (DIRECT ADD)
 # ============================================================
 
 SPECIAL_HANDLERS = [
@@ -90,7 +81,7 @@ SPECIAL_HANDLERS = [
 ]
 
 # ============================================================
-# 🧠 MAIN LOADER
+# 🧠 MAIN LOADER FUNCTION
 # ============================================================
 
 def register_all_handlers(app):
@@ -102,10 +93,11 @@ def register_all_handlers(app):
     failed = 0
 
     # ========================================================
-    # 🔄 LOAD MODULES
+    # 🔄 LOAD NORMAL MODULES
     # ========================================================
 
     for name, module, func_name in MODULES:
+
         func = safe_import(module, func_name)
 
         if not func:
@@ -115,10 +107,12 @@ def register_all_handlers(app):
 
         try:
             t1 = time.time()
+
             func(app)
+
             t2 = time.time()
 
-            logger.info(f"✅ {name} ({round(t2 - t1, 3)}s)")
+            logger.info(f"✅ {name} loaded ({round(t2 - t1, 3)}s)")
             loaded += 1
 
         except Exception as e:
@@ -130,6 +124,7 @@ def register_all_handlers(app):
     # ========================================================
 
     for name, module, handler_name in SPECIAL_HANDLERS:
+
         handler = safe_import(module, handler_name)
 
         if not handler:
@@ -139,7 +134,7 @@ def register_all_handlers(app):
 
         try:
             app.add_handler(handler)
-            logger.info(f"🔥 {name}")
+            logger.info(f"🔥 {name} added")
             loaded += 1
 
         except Exception as e:
@@ -152,9 +147,9 @@ def register_all_handlers(app):
 
     total_time = round(time.time() - start_time, 2)
 
-    logger.info("\n" + "=" * 40)
+    logger.info("\n" + "=" * 45)
     logger.info("🚀 BOT LOADING COMPLETE")
-    logger.info(f"✅ Loaded: {loaded}")
-    logger.info(f"❌ Failed: {failed}")
-    logger.info(f"⏱ Time: {total_time}s")
-    logger.info("=" * 40)
+    logger.info(f"✅ Loaded Modules : {loaded}")
+    logger.info(f"❌ Failed Modules : {failed}")
+    logger.info(f"⏱ Total Time     : {total_time}s")
+    logger.info("=" * 45 + "\n")
