@@ -1,12 +1,19 @@
 # ============================================================
-# 🤖 Group Manager Bot - Main Entry (ULTRA PRO MAX FINAL)
+# 🤖 Group Manager Bot - Main Entry (ULTRA PRO MAX++)
 # ============================================================
 
 import logging
 import asyncio
+import signal
+import sys
+import gc
+
 from pyrogram import Client, filters, idle
 
-from config import API_ID, API_HASH, BOT_TOKEN, LOG_LEVEL
+from config import (
+    API_ID, API_HASH, BOT_TOKEN,
+    LOG_LEVEL, AUTO_CREATE_INDEXES
+)
 
 # 🔐 Security
 from security import verify_integrity, get_runtime_key
@@ -42,7 +49,7 @@ try:
     logger.info("🔐 Security check passed!")
 except Exception as e:
     logger.error(f"❌ Security check failed: {e}")
-    exit(1)
+    sys.exit(1)
 
 
 # ============================================================
@@ -54,8 +61,8 @@ app = Client(
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN,
-    workers=20,
-    sleep_threshold=15
+    workers=50,  # 🔥 increased workers
+    sleep_threshold=20
 )
 
 
@@ -67,8 +74,9 @@ async def startup():
     logger.info("⚙️ Running startup tasks...")
 
     try:
-        await create_indexes()
-        logger.info("✅ Database indexes ready")
+        if AUTO_CREATE_INDEXES:
+            await create_indexes()
+            logger.info("✅ Database indexes ready")
     except Exception as e:
         logger.error(f"❌ DB Index error: {e}")
 
@@ -81,15 +89,18 @@ async def startup():
 
 async def shutdown():
     logger.warning("🛑 Shutting down bot...")
+
     try:
         await app.stop()
     except Exception:
         pass
+
+    gc.collect()  # 🔥 memory cleanup
     logger.info("✅ Bot stopped safely")
 
 
 # ============================================================
-# 📦 Register All Handlers
+# 📦 Register Handlers
 # ============================================================
 
 try:
@@ -97,16 +108,30 @@ try:
     logger.info("✅ All handlers loaded!")
 except Exception as e:
     logger.error(f"❌ Handler error: {e}")
-    exit(1)
+    sys.exit(1)
 
 
 # ============================================================
-# ❤️ KEEP BOT ALIVE (SAFE FALLBACK)
+# ❤️ KEEP ALIVE (ANTI-SLEEP)
 # ============================================================
 
 @app.on_message(filters.private & filters.text & filters.incoming)
 async def alive_ping(client, message):
     return
+
+
+# ============================================================
+# 🧠 SIGNAL HANDLER (Docker Safe Shutdown)
+# ============================================================
+
+stop_event = asyncio.Event()
+
+def handle_signal(*_):
+    logger.warning("⚠️ Stop signal received...")
+    stop_event.set()
+
+signal.signal(signal.SIGINT, handle_signal)
+signal.signal(signal.SIGTERM, handle_signal)
 
 
 # ============================================================
@@ -116,7 +141,7 @@ async def alive_ping(client, message):
 async def main():
     retry_delay = 5
 
-    while True:
+    while not stop_event.is_set():
         try:
             logger.info("🚀 Starting bot session...")
 
@@ -124,15 +149,18 @@ async def main():
             await startup()
 
             logger.info("🤖 Bot is running...")
-            await idle()
+
+            await asyncio.wait(
+                [idle(), stop_event.wait()],
+                return_when=asyncio.FIRST_COMPLETED
+            )
 
         except Exception as e:
-            logger.error(f"❌ Crash detected: {e}")
+            logger.error(f"❌ Crash detected: {e}", exc_info=True)
 
             logger.info(f"🔄 Restarting in {retry_delay} seconds...")
             await asyncio.sleep(retry_delay)
 
-            # exponential backoff (max 60 sec)
             retry_delay = min(retry_delay * 2, 60)
 
         finally:
@@ -159,4 +187,4 @@ if __name__ == "__main__":
         logger.warning("⛔ Bot stopped manually")
 
     except Exception as e:
-        logger.error(f"❌ Fatal error: {e}")
+        logger.error(f"❌ Fatal error: {e}", exc_info=True)
