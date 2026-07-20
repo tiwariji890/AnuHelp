@@ -1,5 +1,5 @@
 # ============================================================
-# 🤖 Group Manager Bot - FULL CONFIG FILE (FINAL PRO MAX)
+# 🤖 Group Manager Bot - FULL CONFIG FILE (ULTRA PRO MAX FINAL)
 # ============================================================
 
 import os
@@ -38,7 +38,7 @@ AUTO_APPROVE_ADMINS = os.getenv("AUTO_APPROVE_ADMINS", "True") == "True"
 IGNORE_DEVS = os.getenv("IGNORE_DEVS", "True") == "True"
 
 # ============================================================
-# 📢 CHANNEL
+# 📢 CHANNEL / LOGS
 # ============================================================
 
 SUPPORT_CHAT = int(os.getenv("SUPPORT_CHAT", "-1001234567890"))
@@ -51,16 +51,31 @@ LOG_CHANNEL = int(os.getenv("LOG_CHANNEL", "0"))
 MAX_WARNS = int(os.getenv("MAX_WARNS", "3"))
 
 # ============================================================
+# 🔞 NSFW SYSTEM
+# ============================================================
+
+NSFW_DEFAULT = os.getenv("NSFW_DEFAULT", "False") == "True"
+
+# ============================================================
+# 🔐 CAPTCHA SYSTEM 🔥
+# ============================================================
+
+CAPTCHA_DEFAULT = os.getenv("CAPTCHA_DEFAULT", "True") == "True"
+CAPTCHA_TIMEOUT = int(os.getenv("CAPTCHA_TIMEOUT", "120"))
+CAPTCHA_MODE = os.getenv("CAPTCHA_MODE", "math")  # math / button
+
+# ============================================================
 # 🚫 ANTIBIOLINK SYSTEM 🔥
 # ============================================================
 
 ANTIBIOLINK_DEFAULT = os.getenv("ANTIBIOLINK_DEFAULT", "False") == "True"
 ANTIBIOLINK_WARN_LIMIT = int(os.getenv("ANTIBIOLINK_WARN_LIMIT", "3"))
 ANTIBIOLINK_MUTE_TIME = int(os.getenv("ANTIBIOLINK_MUTE_TIME", "600"))
-ANTIBIOLINK_PUNISHMENT = os.getenv("ANTIBIOLINK_PUNISHMENT", "mute")
+ANTIBIOLINK_PUNISHMENT = os.getenv("ANTIBIOLINK_PUNISHMENT", "mute")  # mute / ban
 
 ANTIBIOLINK_IGNORE_ADMINS = os.getenv("ANTIBIOLINK_IGNORE_ADMINS", "True") == "True"
 ANTIBIOLINK_IGNORE_DEVS = os.getenv("ANTIBIOLINK_IGNORE_DEVS", "True") == "True"
+
 ANTIBIOLINK_STRICT_MODE = os.getenv("ANTIBIOLINK_STRICT_MODE", "True") == "True"
 
 WHITELIST_DOMAINS = os.getenv(
@@ -77,7 +92,49 @@ DELETE_ON_DETECT = os.getenv("DELETE_ON_DETECT", "True") == "True"
 WARN_ON_DETECT = os.getenv("WARN_ON_DETECT", "True") == "True"
 
 # ============================================================
-# ✅ VALIDATION
+# 🚨 ANTIRAID SYSTEM 🔥
+# ============================================================
+
+ANTIRAID_DEFAULT = os.getenv("ANTIRAID_DEFAULT", "False") == "True"
+ANTIRAID_DURATION = int(os.getenv("ANTIRAID_DURATION", "600"))
+
+# ============================================================
+# 🔐 LOCK SYSTEM 🔥
+# ============================================================
+
+LOCK_TYPES = [
+    "all", "photo", "video", "gif", "sticker",
+    "link", "forward", "bots", "audio",
+    "voice", "document", "poll"
+]
+
+# ============================================================
+# 📌 PIN SYSTEM
+# ============================================================
+
+AUTO_PIN = os.getenv("AUTO_PIN", "False") == "True"
+
+# ============================================================
+# ⚡ PERFORMANCE / CACHE
+# ============================================================
+
+CACHE_ENABLED = os.getenv("CACHE_ENABLED", "True") == "True"
+
+# ============================================================
+# 🔄 AUTO DELETE / CLEANUP
+# ============================================================
+
+AUTO_DELETE_TIME = int(os.getenv("AUTO_DELETE_TIME", "0"))
+
+# ============================================================
+# 🚀 SECURITY FLAGS
+# ============================================================
+
+STRICT_MODE = os.getenv("STRICT_MODE", "True") == "True"
+IGNORE_PRIVATE = os.getenv("IGNORE_PRIVATE", "True") == "True"
+
+# ============================================================
+# ❌ VALIDATION
 # ============================================================
 
 if not API_ID or not API_HASH or not BOT_TOKEN:
@@ -85,3 +142,5 @@ if not API_ID or not API_HASH or not BOT_TOKEN:
 
 if not MONGO_URI:
     raise ValueError("❌ MONGO_URI required!")
+
+print("✅ CONFIG LOADED SUCCESSFULLY 🚀")
