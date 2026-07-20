@@ -42,8 +42,37 @@ DEFAULT = {
     "antiedit": False,
     "welcome": True,
     "locks": [],
-    "pinned": None
+    "pinned": None,
+    "antibiolink": False   # 🔥 NEW
 }
+
+# ==========================================================
+# 🚫 ANTIBIOLINK SYSTEM (NEW)
+# ==========================================================
+
+async def set_antibiolink(chat_id, status):
+    await db.antibiolink.update_one(
+        {"chat_id": chat_id},
+        {"$set": {
+            "enabled": status,
+            "updated": datetime.utcnow()
+        }},
+        upsert=True
+    )
+    cache_set(f"antibiolink:{chat_id}", status)
+
+
+async def get_antibiolink(chat_id):
+    cached = cache_get(f"antibiolink:{chat_id}")
+    if cached is not None:
+        return cached
+
+    data = await db.antibiolink.find_one({"chat_id": chat_id})
+    status = data.get("enabled", DEFAULT["antibiolink"]) if data else DEFAULT["antibiolink"]
+
+    cache_set(f"antibiolink:{chat_id}", status)
+    return status
+
 
 # ==========================================================
 # 📌 PINS SYSTEM (SAVE + RESTORE)
@@ -286,5 +315,6 @@ async def create_indexes():
     # 🔥 NEW INDEXES
     await db.locks.create_index([("chat_id", 1)], unique=True)
     await db.pins.create_index([("chat_id", 1)], unique=True)
+    await db.antibiolink.create_index([("chat_id", 1)], unique=True)
 
     logger.info("🚀 Indexes Created")
