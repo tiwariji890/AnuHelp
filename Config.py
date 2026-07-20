@@ -1,5 +1,5 @@
 # ============================================================
-# 🤖 Group Manager Bot - FULL CONFIG FILE (FINAL PRO)
+# 🤖 Group Manager Bot - FULL CONFIG FILE (FINAL PRO MAX)
 # ============================================================
 
 import os
@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ============================================================
-# 🔑 BOT CREDENTIALS (IMPORTANT)
+# 🔑 BOT CREDENTIALS
 # ============================================================
 
 API_ID = int(os.getenv("API_ID", "0"))
@@ -30,49 +30,19 @@ OWNER_ID = int(os.getenv("OWNER_ID", "0"))
 BOT_USERNAME = os.getenv("BOT_USERNAME", "Anu_helpbot")
 
 # ============================================================
-# 👑 DEV / APPROVAL SYSTEM (NEW 🔥)
+# 👑 DEV SYSTEM
 # ============================================================
 
-# Multiple dev IDs (space separated in .env)
 DEV_LIST = list(map(int, os.getenv("DEV_LIST", str(OWNER_ID)).split()))
-
-# Auto approve admins
 AUTO_APPROVE_ADMINS = os.getenv("AUTO_APPROVE_ADMINS", "True") == "True"
-
-# Devs always bypass everything
 IGNORE_DEVS = os.getenv("IGNORE_DEVS", "True") == "True"
 
 # ============================================================
-# 📢 CHANNEL / SUPPORT
+# 📢 CHANNEL
 # ============================================================
 
 SUPPORT_CHAT = int(os.getenv("SUPPORT_CHAT", "-1001234567890"))
-SUPPORT_GROUP = os.getenv("SUPPORT_GROUP", "https://t.me/+xxxx")
-UPDATE_CHANNEL = os.getenv("UPDATE_CHANNEL", "https://t.me/xxxx")
-
-# ============================================================
-# 🖼️ START MESSAGE IMAGE
-# ============================================================
-
-START_IMAGE = os.getenv(
-    "START_IMAGE",
-    "https://files.catbox.moe/9sqgv0.jpg"
-)
-
-# ============================================================
-# 💬 SUPPORT SYSTEM CONFIG
-# ============================================================
-
-SUPPORT_COOLDOWN = int(os.getenv("SUPPORT_COOLDOWN", "30"))
-
-# ============================================================
-# 🚫 ABUSE FILTER CONFIG
-# ============================================================
-
-ABUSE_ENABLED = os.getenv("ABUSE_ENABLED", "True") == "True"
-ABUSE_SKIP_ADMINS = os.getenv("ABUSE_SKIP_ADMINS", "False") == "True"
-ABUSE_WARN_LIMIT = int(os.getenv("ABUSE_WARN_LIMIT", "3"))
-ABUSE_MUTE_TIME = int(os.getenv("ABUSE_MUTE_TIME", "10"))
+LOG_CHANNEL = int(os.getenv("LOG_CHANNEL", "0"))
 
 # ============================================================
 # ⚠️ WARN SYSTEM
@@ -81,26 +51,33 @@ ABUSE_MUTE_TIME = int(os.getenv("ABUSE_MUTE_TIME", "10"))
 MAX_WARNS = int(os.getenv("MAX_WARNS", "3"))
 
 # ============================================================
-# 📊 LOGGING
+# 🚫 ANTIBIOLINK SYSTEM 🔥
 # ============================================================
 
-LOG_CHANNEL = int(os.getenv("LOG_CHANNEL", "0"))
+ANTIBIOLINK_DEFAULT = os.getenv("ANTIBIOLINK_DEFAULT", "False") == "True"
+ANTIBIOLINK_WARN_LIMIT = int(os.getenv("ANTIBIOLINK_WARN_LIMIT", "3"))
+ANTIBIOLINK_MUTE_TIME = int(os.getenv("ANTIBIOLINK_MUTE_TIME", "600"))
+ANTIBIOLINK_PUNISHMENT = os.getenv("ANTIBIOLINK_PUNISHMENT", "mute")
+
+ANTIBIOLINK_IGNORE_ADMINS = os.getenv("ANTIBIOLINK_IGNORE_ADMINS", "True") == "True"
+ANTIBIOLINK_IGNORE_DEVS = os.getenv("ANTIBIOLINK_IGNORE_DEVS", "True") == "True"
+ANTIBIOLINK_STRICT_MODE = os.getenv("ANTIBIOLINK_STRICT_MODE", "True") == "True"
+
+WHITELIST_DOMAINS = os.getenv(
+    "WHITELIST_DOMAINS",
+    "t.me,telegram.me,youtube.com,youtu.be"
+).split(",")
+
+BIO_LINK_KEYWORDS = os.getenv(
+    "BIO_LINK_KEYWORDS",
+    "http,www,.com,.net,.org,t.me,telegram"
+).split(",")
+
+DELETE_ON_DETECT = os.getenv("DELETE_ON_DETECT", "True") == "True"
+WARN_ON_DETECT = os.getenv("WARN_ON_DETECT", "True") == "True"
 
 # ============================================================
-# 🔒 SECURITY
-# ============================================================
-
-IGNORE_ADMINS = os.getenv("IGNORE_ADMINS", "False") == "True"
-
-# ============================================================
-# ⚙️ OTHER SETTINGS
-# ============================================================
-
-AUTO_DELETE_TIME = int(os.getenv("AUTO_DELETE_TIME", "0"))
-DEBUG = os.getenv("DEBUG", "True") == "True"
-
-# ============================================================
-# ✅ VALIDATION (IMPORTANT)
+# ✅ VALIDATION
 # ============================================================
 
 if not API_ID or not API_HASH or not BOT_TOKEN:
@@ -108,6 +85,3 @@ if not API_ID or not API_HASH or not BOT_TOKEN:
 
 if not MONGO_URI:
     raise ValueError("❌ MONGO_URI required!")
-
-if not OWNER_ID:
-    print("⚠️ OWNER_ID not set (recommended)")
