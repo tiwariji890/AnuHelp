@@ -1,5 +1,5 @@
 # ============================================================
-# 🤖 HANDLERS LOADER (ULTRA PRO MAX FINAL + LANGUAGE SAFE)
+# 🤖 HANDLERS LOADER (ULTRA PRO MAX FINAL + SUDO + SAFE)
 # ============================================================
 
 import logging
@@ -71,6 +71,9 @@ MODULES = [
     ("Admin Panel", "handlers.adminpanel", "register_admin_panel"),
     ("Approval System", "handlers.approve", "register_approval_handlers"),
 
+    # ================= 👑 SUDO SYSTEM =================
+    ("Sudo System", "handlers.sudo", "register"),
+
     # ================= UTIL =================
     ("Support System", "handlers.help_support", "register_help_handler"),
     ("Anti-Edit", "handlers.antiedit", "register_antiedit"),
@@ -99,12 +102,17 @@ def register_all_handlers(app):
 
     loaded = 0
     failed = 0
+    loaded_modules = set()  # 🔥 prevent duplicate load
 
     # ========================================================
     # 🔄 LOAD NORMAL MODULES
     # ========================================================
 
     for name, module, func_name in MODULES:
+
+        if module in loaded_modules:
+            logger.warning(f"⚠️ Duplicate skipped → {module}")
+            continue
 
         logger.info(f"🔄 Loading → {name}")
 
@@ -124,6 +132,7 @@ def register_all_handlers(app):
 
             logger.info(f"✅ Loaded → {name} ({round(t2 - t1, 3)}s)")
             loaded += 1
+            loaded_modules.add(module)
 
         except Exception as e:
             logger.error(f"❌ Crash → {name} → {e}")
