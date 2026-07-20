@@ -1,5 +1,5 @@
 # ============================================================
-# 🤖 HANDLERS LOADER (ULTIMATE PRO MAX)
+# 🤖 HANDLERS LOADER (ULTIMATE PRO MAX + CAPTCHA ADDED)
 # ============================================================
 
 import logging
@@ -7,7 +7,7 @@ import importlib
 import time
 
 # ============================================================
-# 🎨 LOGGING SETUP (MODERN)
+# 🎨 LOGGING SETUP
 # ============================================================
 
 logging.basicConfig(
@@ -31,7 +31,7 @@ def safe_import(module_name: str, func_name: str):
         return None
 
 # ============================================================
-# 📦 MODULE CONFIG (AUTO EXTENDABLE)
+# 📦 MODULE CONFIG
 # ============================================================
 
 MODULES = [
@@ -48,6 +48,9 @@ MODULES = [
 
     # 🚫 ANTI BIO LINK
     ("Anti Bio Link", "handlers.antibiolink", "register_antibiolink"),
+
+    # 🔐 CAPTCHA SYSTEM (NEW 🔥)
+    ("Captcha System", "handlers.captcha", "register_captcha"),
 
     # HELP
     ("Support System", "handlers.help_support", "register_help_handler"),
@@ -77,7 +80,7 @@ MODULES = [
 ]
 
 # ============================================================
-# 🚨 SPECIAL HANDLERS (DIRECT)
+# 🚨 SPECIAL HANDLERS
 # ============================================================
 
 SPECIAL_HANDLERS = [
@@ -87,7 +90,7 @@ SPECIAL_HANDLERS = [
 ]
 
 # ============================================================
-# 🧠 MAIN LOADER FUNCTION
+# 🧠 MAIN LOADER
 # ============================================================
 
 def register_all_handlers(app):
@@ -99,7 +102,7 @@ def register_all_handlers(app):
     failed = 0
 
     # ========================================================
-    # 🔄 LOAD NORMAL MODULES
+    # 🔄 LOAD MODULES
     # ========================================================
 
     for name, module, func_name in MODULES:
