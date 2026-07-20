@@ -1,4 +1,5 @@
-# AnuHelp
+# ˹ᴀɴᴜ ꭙ Hᴇʟᴘ˼
+
 <div align="center">
 
 <a href="https://files.catbox.moe/4tsaym.jpg">
