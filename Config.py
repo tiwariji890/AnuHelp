@@ -134,6 +134,37 @@ STRICT_MODE = os.getenv("STRICT_MODE", "True") == "True"
 IGNORE_PRIVATE = os.getenv("IGNORE_PRIVATE", "True") == "True"
 
 # ============================================================
+# 🌍 LANGUAGE SYSTEM 🔥 (NEW ADDED)
+# ============================================================
+
+DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", "en")
+
+AUTO_TRANSLATE = os.getenv("AUTO_TRANSLATE", "True") == "True"
+
+TRANSLATE_MODE = os.getenv("TRANSLATE_MODE", "reply")  
+# reply / replace / off
+
+TRANSLATE_TIMEOUT = int(os.getenv("TRANSLATE_TIMEOUT", "5"))
+TRANSLATE_RETRIES = int(os.getenv("TRANSLATE_RETRIES", "2"))
+
+IGNORE_COMMANDS_IN_TRANSLATE = os.getenv(
+    "IGNORE_COMMANDS_IN_TRANSLATE", "True"
+) == "True"
+
+# ============================================================
+# ⚡ ADVANCED PERFORMANCE (FUTURE READY)
+# ============================================================
+
+CACHE_TTL = int(os.getenv("CACHE_TTL", "300"))
+
+# ============================================================
+# 🧠 DEBUG / LOGGING
+# ============================================================
+
+DEBUG = os.getenv("DEBUG", "True") == "True"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+# ============================================================
 # ❌ VALIDATION
 # ============================================================
 
