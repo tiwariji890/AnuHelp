@@ -1,5 +1,5 @@
 # ============================================================
-# 🤖 DATABASE LAYER (ULTRA PRO MAX FINAL)
+# 🤖 DATABASE LAYER (ULTRA PRO MAX FINAL + LANGUAGE)
 # ============================================================
 
 import motor.motor_asyncio
@@ -34,7 +34,6 @@ def cache_set(key, value):
 def cache_del(key):
     CACHE.pop(key, None)
 
-
 # ============================================================
 # ⚙️ DEFAULT SETTINGS
 # ============================================================
@@ -47,11 +46,43 @@ DEFAULT = {
     "locks": [],
     "pinned": None,
     "antibiolink": False,
-    "captcha": True   # 🔥 NEW
+    "captcha": True
 }
 
 # ==========================================================
-# 🔐 CAPTCHA SYSTEM (NEW 🔥)
+# 🌍 LANGUAGE SYSTEM (NEW 🔥)
+# ==========================================================
+
+async def set_language(chat_id, lang):
+    await db.language.update_one(
+        {"chat_id": chat_id},
+        {"$set": {
+            "lang": lang,
+            "updated": datetime.utcnow()
+        }},
+        upsert=True
+    )
+    cache_set(f"lang:{chat_id}", lang)
+
+
+async def get_language(chat_id):
+    cached = cache_get(f"lang:{chat_id}")
+    if cached is not None:
+        return cached
+
+    data = await db.language.find_one({"chat_id": chat_id})
+    lang = data.get("lang", "en") if data else "en"
+
+    cache_set(f"lang:{chat_id}", lang)
+    return lang
+
+
+async def delete_language(chat_id):
+    await db.language.delete_one({"chat_id": chat_id})
+    cache_del(f"lang:{chat_id}")
+
+# ==========================================================
+# 🔐 CAPTCHA SYSTEM
 # ==========================================================
 
 async def set_captcha(chat_id, status):
@@ -77,7 +108,6 @@ async def get_captcha(chat_id):
     cache_set(f"captcha:{chat_id}", status)
     return status
 
-
 # ==========================================================
 # 🚫 ANTIBIOLINK
 # ==========================================================
@@ -102,7 +132,6 @@ async def get_antibiolink(chat_id):
     cache_set(f"antibiolink:{chat_id}", status)
     return status
 
-
 # ==========================================================
 # 📌 PINS
 # ==========================================================
@@ -118,7 +147,7 @@ async def set_pinned(chat_id, message_id):
 
 async def get_pinned(chat_id):
     cached = cache_get(f"pin:{chat_id}")
-    if cached:
+    if cached is not None:
         return cached
 
     data = await db.pins.find_one({"chat_id": chat_id})
@@ -126,7 +155,6 @@ async def get_pinned(chat_id):
 
     cache_set(f"pin:{chat_id}", msg_id)
     return msg_id
-
 
 # ==========================================================
 # 🔐 LOCKS
@@ -148,7 +176,6 @@ async def is_locked(chat_id, lock_type):
     locks = await get_locks(chat_id)
     return lock_type in locks
 
-
 # ==========================================================
 # ⚠️ WARN
 # ==========================================================
@@ -165,7 +192,6 @@ async def add_warn(chat_id, user_id):
 
     cache_set(f"warn:{chat_id}:{user_id}", count)
     return count
-
 
 # ==========================================================
 # 🔞 NSFW
@@ -191,7 +217,6 @@ async def get_nsfw(chat_id):
     cache_set(f"nsfw:{chat_id}", status)
     return status
 
-
 # ==========================================================
 # 🚨 ANTIRAID
 # ==========================================================
@@ -213,9 +238,8 @@ async def is_antiraid_active(chat_id):
 
     return data.get("enabled_until", 0) > int(datetime.utcnow().timestamp())
 
-
 # ==========================================================
-# 🗑 CAPTCHA DATA STORE (IMPORTANT)
+# 🗑 CAPTCHA DATA STORE
 # ==========================================================
 
 async def save_captcha(chat_id, user_id, captcha):
@@ -240,9 +264,8 @@ async def verify_captcha_user(chat_id, user_id):
 async def delete_captcha(chat_id, user_id):
     await db.captcha.delete_one({"chat_id": chat_id, "user_id": user_id})
 
-
 # ==========================================================
-# 📌 INDEXES
+# 📌 INDEXES (IMPORTANT)
 # ==========================================================
 
 async def create_indexes():
@@ -258,6 +281,12 @@ async def create_indexes():
     await db.locks.create_index([("chat_id", 1)], unique=True)
     await db.pins.create_index([("chat_id", 1)], unique=True)
     await db.antibiolink.create_index([("chat_id", 1)], unique=True)
+
+    # 🌍 LANGUAGE INDEX
+    await db.language.create_index(
+        [("chat_id", 1)],
+        unique=True
+    )
 
     # 🔥 CAPTCHA INDEX
     await db.captcha.create_index(
