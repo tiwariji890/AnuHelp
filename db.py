@@ -40,23 +40,97 @@ DEFAULT = {
     "warn_limit": 3,
     "nsfw": False,
     "antiedit": False,
-    "welcome": True
+    "welcome": True,
+    "locks": [],
+    "pinned": None
 }
 
 # ==========================================================
-# 🟢 WELCOME
+# 📌 PINS SYSTEM (SAVE + RESTORE)
 # ==========================================================
 
-async def set_welcome(chat_id, text):
-    await db.welcome.update_one(
+async def set_pinned(chat_id, message_id):
+    await db.pins.update_one(
         {"chat_id": chat_id},
-        {"$set": {"message": text, "updated": datetime.utcnow()}},
+        {"$set": {
+            "message_id": message_id,
+            "updated": datetime.utcnow()
+        }},
+        upsert=True
+    )
+    cache_set(f"pin:{chat_id}", message_id)
+
+
+async def get_pinned(chat_id):
+    cached = cache_get(f"pin:{chat_id}")
+    if cached:
+        return cached
+
+    data = await db.pins.find_one({"chat_id": chat_id})
+    msg_id = data.get("message_id") if data else None
+
+    cache_set(f"pin:{chat_id}", msg_id)
+    return msg_id
+
+
+async def clear_pinned(chat_id):
+    await db.pins.delete_one({"chat_id": chat_id})
+    CACHE.pop(f"pin:{chat_id}", None)
+
+
+# ==========================================================
+# 🔐 LOCKS SYSTEM (MULTI LOCK SUPPORT)
+# ==========================================================
+
+async def set_lock(chat_id, lock_type):
+    data = await db.locks.find_one({"chat_id": chat_id})
+    locks = data.get("locks", []) if data else []
+
+    if lock_type not in locks:
+        locks.append(lock_type)
+
+    await db.locks.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"locks": locks}},
         upsert=True
     )
 
-async def get_welcome(chat_id):
-    data = await db.welcome.find_one({"chat_id": chat_id})
-    return data.get("message") if data else None
+    cache_set(f"locks:{chat_id}", locks)
+
+
+async def remove_lock(chat_id, lock_type):
+    data = await db.locks.find_one({"chat_id": chat_id})
+    if not data:
+        return
+
+    locks = data.get("locks", [])
+    if lock_type in locks:
+        locks.remove(lock_type)
+
+    await db.locks.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"locks": locks}},
+        upsert=True
+    )
+
+    cache_set(f"locks:{chat_id}", locks)
+
+
+async def get_locks(chat_id):
+    cached = cache_get(f"locks:{chat_id}")
+    if cached is not None:
+        return cached
+
+    data = await db.locks.find_one({"chat_id": chat_id})
+    locks = data.get("locks", []) if data else []
+
+    cache_set(f"locks:{chat_id}", locks)
+    return locks
+
+
+async def is_locked(chat_id, lock_type):
+    locks = await get_locks(chat_id)
+    return lock_type in locks
 
 
 # ==========================================================
@@ -140,7 +214,7 @@ async def get_antiedit(chat_id):
 
 
 # ==========================================================
-# 🚨 ANTIRAID (IMPROVED)
+# 🚨 ANTIRAID
 # ==========================================================
 
 async def enable_antiraid(chat_id, duration):
@@ -208,5 +282,9 @@ async def create_indexes():
     await db.antiedit.create_index([("chat_id", 1)])
     await db.antiraid.create_index([("chat_id", 1)], unique=True)
     await db.autodel.create_index([("chat_id", 1)], unique=True)
+
+    # 🔥 NEW INDEXES
+    await db.locks.create_index([("chat_id", 1)], unique=True)
+    await db.pins.create_index([("chat_id", 1)], unique=True)
 
     logger.info("🚀 Indexes Created")
