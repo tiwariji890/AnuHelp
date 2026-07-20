@@ -1,99 +1,148 @@
 # ============================================================
-# 🤖 HANDLERS LOADER (SIMPLE + SAFE + POWERFUL)
+# 🤖 HANDLERS LOADER (ULTIMATE PRO MAX)
 # ============================================================
 
 import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("BOT")
+import importlib
+import time
 
 # ============================================================
-# 📦 SAFE IMPORT
+# 🎨 LOGGING SETUP (MODERN)
 # ============================================================
 
-def safe_import(module_name, func_name):
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
+
+logger = logging.getLogger("ULTRA-BOT")
+
+# ============================================================
+# 🛡 SAFE IMPORT FUNCTION
+# ============================================================
+
+def safe_import(module_name: str, func_name: str):
     try:
-        module = __import__(module_name, fromlist=[func_name])
-        return getattr(module, func_name)
+        module = importlib.import_module(module_name)
+        func = getattr(module, func_name)
+        return func
     except Exception as e:
-        logger.warning(f"⚠️ {module_name} not loaded: {e}")
+        logger.warning(f"⚠️ {module_name} failed → {e}")
         return None
 
-
 # ============================================================
-# 📂 IMPORT MODULES
+# 📦 MODULE CONFIG (AUTO EXTENDABLE)
 # ============================================================
 
-modules = {
+MODULES = [
     # BASIC
-    "Start System": safe_import("handlers.start", "register_handlers"),
-    "Group Commands": safe_import("handlers.group_commands", "register_group_commands"),
-    "Repo System": safe_import("handlers.repo", "register_repo_handler"),
+    ("Start System", "handlers.start", "register_handlers"),
+    ("Group Commands", "handlers.group_commands", "register_group_commands"),
+    ("Repo System", "handlers.repo", "register_repo_handler"),
 
     # HELP
-    "Support System": safe_import("handlers.help_support", "register_help_handler"),
+    ("Support System", "handlers.help_support", "register_help_handler"),
 
     # ADMIN
-    "Admin Panel": safe_import("handlers.adminpanel", "register_admin_panel"),
+    ("Admin Panel", "handlers.adminpanel", "register_admin_panel"),
 
     # APPROVAL
-    "Approval System": safe_import("handlers.approve", "register_approval_handlers"),
+    ("Approval System", "handlers.approve", "register_approval_handlers"),
 
     # SECURITY
-    "Anti-Spam": safe_import("handlers.auto_spam_detection", "register_auto_spam"),
-    "Abuse Filter": safe_import("handlers.abuse", "register_abuse_system"),
+    ("Anti-Spam", "handlers.auto_spam_detection", "register_auto_spam"),
+    ("Abuse Filter", "handlers.abuse", "register_abuse_system"),
 
     # ANTIFLOOD
-    "AntiFlood": safe_import("handlers.antiflood", "register_antiflood"),
-    "AntiFlood Commands": safe_import("handlers.antiflood", "register_antiflood_commands"),
+    ("AntiFlood Core", "handlers.antiflood", "register_antiflood"),
+    ("AntiFlood Commands", "handlers.antiflood", "register_antiflood_commands"),
 
     # NSFW
-    "NSFW Filter": safe_import("handlers.nsfw", "register_nsfw_filter"),
-    "NSFW Commands": safe_import("handlers.nsfw_commands", "register_nsfw_commands"),
+    ("NSFW Filter", "handlers.nsfw", "register_nsfw_filter"),
+    ("NSFW Commands", "handlers.nsfw_commands", "register_nsfw_commands"),
 
     # OTHER
-    "Anti-Edit": safe_import("handlers.antiedit", "register_antiedit"),
-    "Auto Clean": safe_import("handlers.intel", "register_autoclean"),
-    "AniQuote": safe_import("handlers.aniquote", "register_aniquote"),
-}
-
-# ANTIRAID (SPECIAL)
-antiraid = safe_import("handlers.antiraid", "antiraid")
-auto_antiraid = safe_import("handlers.antiraid", "auto_antiraid")
-anti_raid_join = safe_import("handlers.antiraid", "anti_raid_join")
-
+    ("Anti-Edit", "handlers.antiedit", "register_antiedit"),
+    ("Auto Clean", "handlers.intel", "register_autoclean"),
+    ("AniQuote", "handlers.aniquote", "register_aniquote"),
+]
 
 # ============================================================
-# 🧠 REGISTER FUNCTION
+# 🚨 SPECIAL HANDLERS (DIRECT)
+# ============================================================
+
+SPECIAL_HANDLERS = [
+    ("AntiRaid Core", "handlers.antiraid", "antiraid"),
+    ("Auto AntiRaid", "handlers.antiraid", "auto_antiraid"),
+    ("AntiRaid Join", "handlers.antiraid", "anti_raid_join"),
+]
+
+# ============================================================
+# 🧠 MAIN LOADER FUNCTION
 # ============================================================
 
 def register_all_handlers(app):
 
-    logger.info("🚀 Loading Modules...\n")
+    logger.info("🚀 Booting Ultra Bot System...\n")
+    start_time = time.time()
 
-    # NORMAL MODULES
-    for name, func in modules.items():
-        if func:
-            try:
-                func(app)
-                logger.info(f"✅ {name}")
-            except Exception as e:
-                logger.error(f"❌ {name} error: {e}")
-        else:
+    loaded = 0
+    failed = 0
+
+    # ========================================================
+    # 🔄 LOAD NORMAL MODULES
+    # ========================================================
+
+    for name, module, func_name in MODULES:
+        func = safe_import(module, func_name)
+
+        if not func:
+            logger.warning(f"⚠️ {name} skipped")
+            failed += 1
+            continue
+
+        try:
+            t1 = time.time()
+            func(app)
+            t2 = time.time()
+
+            logger.info(f"✅ {name} ({round(t2 - t1, 3)}s)")
+            loaded += 1
+
+        except Exception as e:
+            logger.error(f"❌ {name} crashed → {e}")
+            failed += 1
+
+    # ========================================================
+    # 🚨 LOAD SPECIAL HANDLERS
+    # ========================================================
+
+    for name, module, handler_name in SPECIAL_HANDLERS:
+        handler = safe_import(module, handler_name)
+
+        if not handler:
             logger.warning(f"⚠️ {name} missing")
+            failed += 1
+            continue
 
-    # ANTIRAID SPECIAL
-    if antiraid:
-        app.add_handler(antiraid)
-        logger.info("✅ AntiRaid Core")
+        try:
+            app.add_handler(handler)
+            logger.info(f"🔥 {name}")
+            loaded += 1
 
-    if auto_antiraid:
-        app.add_handler(auto_antiraid)
-        logger.info("✅ Auto AntiRaid")
+        except Exception as e:
+            logger.error(f"❌ {name} error → {e}")
+            failed += 1
 
-    if anti_raid_join:
-        app.add_handler(anti_raid_join)
-        logger.info("✅ AntiRaid Join")
+    # ========================================================
+    # 📊 FINAL REPORT
+    # ========================================================
 
-    # FINAL LOG
-    logger.info("🔥 BOT FULLY LOADED 🚀")
+    total_time = round(time.time() - start_time, 2)
+
+    logger.info("\n" + "=" * 40)
+    logger.info("🚀 BOT LOADING COMPLETE")
+    logger.info(f"✅ Loaded: {loaded}")
+    logger.info(f"❌ Failed: {failed}")
+    logger.info(f"⏱ Time: {total_time}s")
+    logger.info("=" * 40)
